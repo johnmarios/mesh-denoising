@@ -1,0 +1,67 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test/tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Editors
+.vscode/
+.idea/
+
+# Operating system
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Generated documentation
+documentation/
+site/
+build/
+dist/
+*.egg-info/
+
+# Logs and TensorBoard
+*.log
+**/tensorboard/
+**/events.out.tfevents.*
+
+# Generated Q8 spectral caches
+**/eigenbasis*.npy
+**/eigenbasis*.npz
+**/laplacian*.npy
+**/laplacian*.npz
+
+# Model checkpoints
+*.pth
+
+# Generated outputs
+outputs/*
+
+# Keep the useful final Q7 artifacts
+!outputs/pointnet_final/
+outputs/pointnet_final/*
+!outputs/pointnet_final/best_checkpoint.pth
+!outputs/pointnet_final/training_curves.png
+!outputs/pointnet_final/q7_results.csv
+
+# Archives should not be committed inside the repository
+*.zip
+*.rar
+*.7z

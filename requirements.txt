@@ -1,0 +1,12 @@
+numpy
+scipy
+matplotlib
+open3d
+beartype
+pyglet
+pyvista
+pyvistaqt
+PyQt5
+plotly
+torch
+tensorboard
