@@ -16,3 +16,4 @@ RANDOM_SEED = 100
 
 # None for all frames
 MAX_FRAMES = None
+
