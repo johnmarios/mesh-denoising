@@ -1,6 +1,6 @@
 import numpy as np
 from core.geometry import face_geometry, delta_coordinates_sparse
-from core.visualization import heatmap_colors, normal_lines
+from core.visualization import heatmap_colors
 from scipy.spatial import cKDTree
 from vvrpywork.shapes import Cuboid3D, LineSet3D, Mesh3D
 from vvrpywork.constants import Color
@@ -369,8 +369,26 @@ def show_aabbs(aabbs: list[tuple[np.ndarray, np.ndarray]]) -> list[Cuboid3D]:
     return cuboids
 
 
-def show_normals(current_mesh: Mesh3D) -> LineSet3D:
-    return normal_lines(current_mesh, normal_length=0.03, max_lines=1000)
+def show_normals(current_mesh: Mesh3D, normal_length: float = 0.03, max_lines: int = 1000) -> LineSet3D:
+    """Return a readable subset of face-normal lines, starting at face centroids."""
+    vertices = np.asarray(current_mesh.vertices, dtype=float)
+    triangles = np.asarray(current_mesh.triangles, dtype=np.int64)
+    centroids, face_normals, _ = face_geometry(vertices, triangles)
+
+    if max_lines <= 0:
+        raise ValueError("max_lines must be positive.")
+
+    step = max(1, int(np.ceil(len(centroids) / max_lines)))
+    selected = np.arange(0, len(centroids), step)
+
+    starts = centroids[selected]
+    ends = starts + normal_length * face_normals[selected]
+
+    points = np.vstack((starts, ends))
+    line_count = len(starts)
+    lines = np.column_stack((np.arange(line_count), np.arange(line_count) + line_count))
+
+    return LineSet3D(points=points, lines=lines, width=1, color=Color.RED)
 
 
 def show_denoising_candidate_regions(aabbs: list[tuple[np.ndarray, np.ndarray]],) -> list[Cuboid3D]:

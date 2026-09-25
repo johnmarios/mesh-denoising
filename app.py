@@ -515,7 +515,7 @@ class ProjectApp(Scene3D_):
     # Display-only 
 
     def toggle_normals(self):
-        """Show/hide cached vertex-normal lines for the current mesh."""
+        """Show/hide cached face-normal lines for the current mesh."""
         if self.normals_visible:
             self._hide_normals()
             self.print("Normals hidden.")
@@ -527,7 +527,7 @@ class ProjectApp(Scene3D_):
             )
         self.addShape(self.normal_lines_cache, "normals")
         self.normals_visible = True
-        self.print("Normals shown.")
+        self.print("Face normals shown.")
 
     def toggle_wireframe(self):
         self.wireframe_visible = not self.wireframe_visible
