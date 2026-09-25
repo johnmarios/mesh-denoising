@@ -23,11 +23,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="folder containing corresponding OBJ frames for Question 8",
     )
     parser.add_argument(
-        "--no-correspondence",
-        action="store_true",
-        help="allow dynamic meshes with different vertex counts and connectivity",
-    )
-    parser.add_argument(
         "--train-pointnet",
         action="store_true",
         help="train the Q7 PointNet",
@@ -135,7 +130,7 @@ def main() -> None:
     if args.dynamic_folder is not None:
         from questions.q8_dynamic.viewer import DynamicMeshApp
 
-        app = DynamicMeshApp(args.dynamic_folder, require_correspondence=not args.no_correspondence)
+        app = DynamicMeshApp(args.dynamic_folder)
         app.mainLoop()
         return
 

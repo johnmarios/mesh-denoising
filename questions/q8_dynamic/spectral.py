@@ -69,7 +69,10 @@ def low_rank_rpca(E: np.ndarray, rank: int, threshold: float, iterations: int, s
     """Estimate the low-rank part S of a temporal matrix E."""
     E = np.asarray(E, dtype=float) # (T, k_bar)
     rows, columns = E.shape
-    rank = max(1, min(rank, rows, columns)) # ensure rank is at least 1 and at most min(rows, columns)
+    # The rank must be strictly smaller than the temporal dimension.
+    # Otherwise S can reproduce E exactly and no noise is removed.
+    maximum_temporal_rank = max(1, rows - 1)
+    rank = max(1, min(rank, maximum_temporal_rank, columns))
 
     # Initial sparse-noise estimate.
     N = np.zeros_like(E)
@@ -120,15 +123,23 @@ def reconstruct_vertices(original_vertices: np.ndarray, original_gft: np.ndarray
 
     return (original_vertices + vertex_correction)
 
+
+def compute_graph_eigenvectors(vertices: np.ndarray, triangles: np.ndarray) -> np.ndarray:
+    """Compute the graph eigenbasis shared by all corresponding frames."""
+    laplacian = graph_laplacian(vertices, triangles)
+    _, eigenvectors = eigendecomposition(laplacian)
+    return eigenvectors
+
 def denoise_dynamic_vertices(vertices_sequence: np.ndarray, triangles: np.ndarray, eigenvectors: np.ndarray = None) -> np.ndarray:
     """dynamic mesh denoising process."""
     vertices_sequence = np.asarray(vertices_sequence, dtype=float) # (T, V, 3)
+    frame_count = vertices_sequence.shape[0]
     vertex_count = vertices_sequence.shape[1]
     if eigenvectors is None:
-        # compute L from the first frame's triangles and vertices (same topology)
-        L = graph_laplacian(vertices_sequence[0], triangles) 
-        # compute the eignenvalues and eigenvectors of L
-        eigenvalues, eigenvectors = eigendecomposition(L)
+        eigenvectors = compute_graph_eigenvectors(
+            vertices_sequence[0],
+            triangles,
+        )
 
     # GFT 
     # gfts = np.stack([graph_fourier_transform(vertices, eigenvectors) for vertices in vertices_sequence]) # (T, V, 3)
@@ -140,10 +151,15 @@ def denoise_dynamic_vertices(vertices_sequence: np.ndarray, triangles: np.ndarra
     # Build Ex/Ey/Ez.
     Ex, Ey, Ez = compute_temporal_matrices(gfts, k_bar)
 
+    if frame_count <= config.SHORT_SEQUENCE_MAX_FRAMES:
+        rpca_rank = config.SHORT_SEQUENCE_RPCA_RANK
+    else:
+        rpca_rank = config.RPCA_RANK
+
     # RPCA: denoise the temporal matrices.
-    Sx = low_rank_rpca(Ex, rank=config.RPCA_RANK, threshold=config.RPCA_THRESHOLD_FACTOR * float(np.std(Ex)), iterations=config.RPCA_ITERATIONS, seed=config.RPCA_SEED)
-    Sy = low_rank_rpca(Ey, rank=config.RPCA_RANK, threshold=config.RPCA_THRESHOLD_FACTOR * float(np.std(Ey)), iterations=config.RPCA_ITERATIONS, seed=config.RPCA_SEED + 1)
-    Sz = low_rank_rpca(Ez, rank=config.RPCA_RANK, threshold=config.RPCA_THRESHOLD_FACTOR * float(np.std(Ez)), iterations=config.RPCA_ITERATIONS, seed=config.RPCA_SEED + 2)
+    Sx = low_rank_rpca(Ex, rank=rpca_rank, threshold=config.RPCA_THRESHOLD_FACTOR * float(np.std(Ex)), iterations=config.RPCA_ITERATIONS, seed=config.RPCA_SEED)
+    Sy = low_rank_rpca(Ey, rank=rpca_rank, threshold=config.RPCA_THRESHOLD_FACTOR * float(np.std(Ey)), iterations=config.RPCA_ITERATIONS, seed=config.RPCA_SEED + 1)
+    Sz = low_rank_rpca(Ez, rank=rpca_rank, threshold=config.RPCA_THRESHOLD_FACTOR * float(np.std(Ez)), iterations=config.RPCA_ITERATIONS, seed=config.RPCA_SEED + 2)
 
     # Put the denoised high frequencies back into each frame's GFT.
     denoised_gfts = reconstruct_gfts(gfts, Sx, Sy, Sz, k_bars)

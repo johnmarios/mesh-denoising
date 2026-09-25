@@ -5,8 +5,9 @@ from vvrpywork.scene import Scene3D_
 from vvrpywork.shapes import LineSet3D, PointSet3D
 
 import config
+from core.geometry import average_edge_length
 from core.mesh import MeshSession
-from core.visualization import gray_colors
+from core.visualization import gray_colors, set_axes_visible
 from questions import q1_noise, q2_metrics, q3_analysis, q4_smoothing, q5_feature_denoising, q7_pointnet
 
 NOISE_KEYS = {
@@ -41,6 +42,7 @@ class ProjectApp(Scene3D_):
         self.normals_visible = False
         self.candidates_visible = False 
         self.point_cloud_visible = False
+        self.axes_visible = True
 
         self.q3_cache = None
         self.candidate_regions_cache = None
@@ -59,7 +61,27 @@ class ProjectApp(Scene3D_):
 
         self.set_slider_value(0, (self.noise_level - config.NOISE_LEVEL_MIN)/ (config.NOISE_LEVEL_MAX - config.NOISE_LEVEL_MIN),)
         self.set_slider_value(1, self.smoothing_strength / config.SMOOTHING_STRENGTH_MAX)
+        self.print_startup_mesh_information()
         self.print_help()
+
+    def print_startup_mesh_information(self):
+        """Print the loaded mesh and noise scale used by Question 1."""
+        vertices = np.asarray(self.session.original.vertices, dtype=float)
+        triangles = np.asarray(self.session.original.triangles, dtype=np.int64)
+        mean_edge_length = average_edge_length(vertices, triangles)
+        sigma = self.noise_level * mean_edge_length
+
+        print(
+            "\n"
+            "================ MESH INFORMATION ================\n"
+            f"Model            : {self.session.model_name}\n"
+            f"N (vertices)     : {len(vertices)}\n"
+            f"F (faces)        : {len(triangles)}\n"
+            f"l_mean           : {mean_edge_length:.12g}\n"
+            f"alpha            : {self.noise_level:.6g}\n"
+            f"sigma            : {sigma:.12g}\n"
+            "==================================================\n"
+        )
 
     def _invalidate_analysis_cache(self):
         """Call whenever the current mesh geometry changes."""
@@ -288,6 +310,8 @@ class ProjectApp(Scene3D_):
             self.reset_experiment()
         elif symbol == Key.W:
             self.toggle_wireframe()
+        elif symbol == Key.A:
+            self.toggle_axes()
         elif symbol == Key.V:
             self.toggle_point_cloud()
         elif symbol == Key.SLASH:
@@ -523,6 +547,16 @@ class ProjectApp(Scene3D_):
         mode = "point cloud" if self.point_cloud_visible else "surface mesh"
         self.print(f"View: {mode}.")
 
+    def toggle_axes(self):
+        new_state = not self.axes_visible
+        if not set_axes_visible(self._plotter, new_state):
+            self.print("The coordinate axes could not be found.")
+            return
+
+        self.axes_visible = new_state
+        state = "shown" if self.axes_visible else "hidden"
+        self.print(f"Coordinate axes {state}.")
+
     def print_help(self):
         self.print(
             "\n"
@@ -561,6 +595,7 @@ class ProjectApp(Scene3D_):
             "L : Show delta heatmap of current mesh\n"
             "C : Return current mesh to gray\n"
             "W : Toggle wireframe\n"
+            "A : Toggle coordinate axes\n"
             "M : show normal lines on/off\n"
             "R : Reset clean mesh and clear the whole experiment\n"
             "? : Show this menu\n"

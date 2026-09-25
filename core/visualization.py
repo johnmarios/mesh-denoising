@@ -11,6 +11,28 @@ def gray_colors(count: int) -> np.ndarray:
     return np.full((count, 3), 0.65)
 
 
+def set_axes_visible(plotter, visible: bool) -> bool:
+    """Show or hide the VTK axes actor created by VVRPyWork.
+
+    The function works at application level, so the VVRPyWork source code does
+    not have to be changed.  It returns False only when no axes actor exists.
+    """
+    view_properties = plotter.renderer.GetViewProps()
+    view_properties.InitTraversal()
+
+    axes_found = False
+    for _ in range(view_properties.GetNumberOfItems()):
+        actor = view_properties.GetNextProp()
+        if actor is not None and actor.IsA("vtkAxesActor"):
+            actor.SetVisibility(visible)
+            axes_found = True
+
+    if axes_found:
+        plotter.render()
+
+    return axes_found
+
+
 def heatmap_colors(values: np.ndarray) -> np.ndarray:
     values = np.asarray(values, dtype=float)
     if len(values) == 0:
