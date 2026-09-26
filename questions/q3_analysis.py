@@ -2,7 +2,7 @@ import numpy as np
 from core.geometry import face_geometry, delta_coordinates_sparse
 from core.visualization import heatmap_colors
 from scipy.spatial import cKDTree
-from vvrpywork.shapes import Cuboid3D, LineSet3D, Mesh3D
+from vvrpywork.shapes import LineSet3D, Mesh3D
 from vvrpywork.constants import Color
 from scipy.cluster.vq import kmeans2
 
@@ -358,15 +358,39 @@ def region_aabbs(vertices, triangles, regions) -> list[tuple[np.ndarray, np.ndar
 
     return aabbs
 
-def show_aabbs(aabbs: list[tuple[np.ndarray, np.ndarray]]) -> list[Cuboid3D]:
-    """Return one red cuboid for every AABB."""
-    cuboids: list[Cuboid3D] = []
+def show_aabbs(aabbs: list[tuple[np.ndarray, np.ndarray]]) -> LineSet3D:
+    """Draw all AABBs as one red line set."""
+    points = []
+    lines = []
+
+    box_edges = (
+        (0, 1), (1, 2), (2, 3), (3, 0),
+        (4, 5), (5, 6), (6, 7), (7, 4),
+        (0, 4), (1, 5), (2, 6), (3, 7),
+    )
 
     for min_coords, max_coords in aabbs:
-        box = Cuboid3D(p1 = min_coords, p2 = max_coords, color=Color.RED)
-        cuboids.append(box)
+        x_min, y_min, z_min = min_coords
+        x_max, y_max, z_max = max_coords
 
-    return cuboids
+        first_point = len(points)
+        points.extend(
+            (
+                (x_min, y_min, z_min),
+                (x_max, y_min, z_min),
+                (x_max, y_max, z_min),
+                (x_min, y_max, z_min),
+                (x_min, y_min, z_max),
+                (x_max, y_min, z_max),
+                (x_max, y_max, z_max),
+                (x_min, y_max, z_max),
+            )
+        )
+
+        for first, second in box_edges:
+            lines.append((first_point + first, first_point + second))
+
+    return LineSet3D(points=points, lines=lines, width=1, color=Color.RED)
 
 
 def show_normals(current_mesh: Mesh3D, normal_length: float = 0.03, max_lines: int = 1000) -> LineSet3D:
@@ -391,8 +415,8 @@ def show_normals(current_mesh: Mesh3D, normal_length: float = 0.03, max_lines: i
     return LineSet3D(points=points, lines=lines, width=1, color=Color.RED)
 
 
-def show_denoising_candidate_regions(aabbs: list[tuple[np.ndarray, np.ndarray]],) -> list[Cuboid3D]:
-    """Create display cuboids for the detected Question 3 regions."""
+def show_denoising_candidate_regions(aabbs: list[tuple[np.ndarray, np.ndarray]]) -> LineSet3D:
+    """Create one line set containing all detected Question 3 AABBs."""
     return show_aabbs(aabbs)
 
 def show_candidate_heatmap(vertex_candidate_scores: np.ndarray) -> np.ndarray:

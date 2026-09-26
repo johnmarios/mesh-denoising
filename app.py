@@ -48,7 +48,7 @@ class ProjectApp(Scene3D_):
         self.candidate_regions_cache = None
         self.delta_cache = None
         self.normal_lines_cache = None
-        self.cuboids_cache = None
+        self.aabb_lines_cache = None
         self.point_cloud_cache = None
 
         self.pointnet_model = None
@@ -90,7 +90,7 @@ class ProjectApp(Scene3D_):
         self.candidate_regions_cache = None
         self.delta_cache = None
         self.normal_lines_cache = None
-        self.cuboids_cache = None
+        self.aabb_lines_cache = None
         self.point_cloud_cache = None
         self.wireframe = None
 
@@ -105,11 +105,8 @@ class ProjectApp(Scene3D_):
         self.normals_visible = False
 
     def _hide_candidate_regions(self):
-        """Remove Q3 cuboids from the scene but keep them cached."""
-        if self.cuboids_cache is not None:
-            for index in range(len(self.cuboids_cache)):
-                self.removeShape(f"q3_cuboid_{index}")
-
+        """Remove the Q3 AABB lines from the scene but keep them cached."""
+        self.removeShape("q3_aabbs")
         self.candidates_visible = False
 
     def _get_q3_analysis(self):
@@ -364,13 +361,12 @@ class ProjectApp(Scene3D_):
         self._show_heatmap(colors, "Candidate",)
 
         region_analysis = self._get_candidate_regions()
-        if self.cuboids_cache is None:
-            self.cuboids_cache = q3_analysis.show_denoising_candidate_regions(
+        if self.aabb_lines_cache is None:
+            self.aabb_lines_cache = q3_analysis.show_denoising_candidate_regions(
                 region_analysis["aabbs"]
             )
 
-        for index, cuboid in enumerate(self.cuboids_cache):
-            self.addShape(cuboid, f"q3_cuboid_{index}")
+        self.addShape(self.aabb_lines_cache, "q3_aabbs")
 
         self.candidates_visible = True
         candidate_count = int(np.sum(region_analysis["candidate_mask"]))
