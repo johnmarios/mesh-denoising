@@ -1,41 +1,49 @@
 """Show how CPD moves one independently remeshed frame onto another."""
 
+import argparse
 import sys
 
 import config
 from questions.bonus_cpd.viewer import CPDRegistrationApp
 
 
-def parse_frame_numbers(arguments: list[str]) -> tuple[int, int]:
-    """Read `--1 --35`, `--1, --35`, or simply `1 35`."""
-    text = " ".join(arguments).replace(",", " ")
-    tokens = text.split()
+def parse_arguments(arguments: list[str]) -> tuple[str, int, int]:
+    """Read the model and two frames, also accepting the old `--1 --35` form."""
+    parser = argparse.ArgumentParser(
+        description="Show CPD registration between two dynamic-mesh frames."
+    )
+    parser.add_argument(
+        "model",
+        choices=config.DYNAMIC_MESH_NAMES,
+        help="dynamic mesh sequence to load",
+    )
+    parser.add_argument("source_frame", type=int, help="moving source frame")
+    parser.add_argument("target_frame", type=int, help="fixed target frame")
 
-    if len(tokens) != 2:
-        raise ValueError(
-            "Give exactly two frames, for example: "
-            "python cpd_demo.py --1 --35"
-        )
+    tokens = " ".join(arguments).replace(",", " ").split()
+    normalized = [
+        token.removeprefix("--")
+        if token.removeprefix("--").isdigit()
+        else token
+        for token in tokens
+    ]
+    parsed = parser.parse_args(normalized)
 
-    frame_numbers = []
-    for token in tokens:
-        number = token.removeprefix("--")
-        if not number.isdigit():
-            raise ValueError(
-                f"'{token}' is not a valid non-negative frame number."
-            )
-        frame_numbers.append(int(number))
+    if parsed.source_frame < 0 or parsed.target_frame < 0:
+        parser.error("frame numbers must be zero or positive")
+    if parsed.source_frame == parsed.target_frame:
+        parser.error("source and target must be different frames")
 
-    source_frame, target_frame = frame_numbers
-    if source_frame == target_frame:
-        raise ValueError("Source and target must be different frames.")
-
-    return source_frame, target_frame
+    return parsed.model, parsed.source_frame, parsed.target_frame
 
 
-def run_demo(source_frame: int, target_frame: int) -> None:
+def run_demo(
+    model_name: str,
+    source_frame: int,
+    target_frame: int,
+) -> None:
     app = CPDRegistrationApp(
-        folder=config.BONUS_DYNAMIC_FOLDER,
+        folder=config.bonus_dynamic_folder(model_name),
         source_frame=source_frame,
         target_frame=target_frame,
     )
@@ -44,8 +52,8 @@ def run_demo(source_frame: int, target_frame: int) -> None:
 
 def main() -> None:
     try:
-        source_frame, target_frame = parse_frame_numbers(sys.argv[1:])
-        run_demo(source_frame, target_frame)
+        model_name, source_frame, target_frame = parse_arguments(sys.argv[1:])
+        run_demo(model_name, source_frame, target_frame)
     except (FileNotFoundError, ValueError) as error:
         print(f"CPD demo error: {error}")
         raise SystemExit(2) from error

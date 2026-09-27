@@ -1,11 +1,25 @@
-"""Run Question 8 with the dynamic mesh selected in config.py."""
+"""Run Question 8 for one named dynamic mesh."""
+
+import argparse
 
 import config
 from questions.q8_dynamic.viewer import DynamicMeshApp
 
 
+def parse_model_name() -> str:
+    parser = argparse.ArgumentParser(description="Question 8: dynamic mesh denoising")
+    parser.add_argument(
+        "model",
+        choices=config.DYNAMIC_MESH_NAMES,
+        help="dynamic mesh sequence to load",
+    )
+    return parser.parse_args().model
+
+
 def main() -> None:
-    app = DynamicMeshApp(config.QUESTION_8_DYNAMIC_FOLDER)
+    model_name = parse_model_name()
+    folder = config.question_8_dynamic_folder(model_name)
+    app = DynamicMeshApp(folder)
     app.mainLoop()
 
 

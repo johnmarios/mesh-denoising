@@ -1,3 +1,4 @@
+import argparse
 from pathlib import Path
 
 import numpy as np
@@ -5,13 +6,12 @@ import open3d as o3d
 
 from vvrpywork.shapes import Mesh3D
 
+import config
 from core.mesh import copy_mesh, vertex_normals
 from core.visualization import gray_colors
 from questions import q1_noise
 from questions.q8_dynamic.sequence import load_frames
 from remesh_config import (
-    INPUT_FOLDER,
-    OUTPUT_FOLDER,
     MIN_FACE_RATIO,
     MAX_FACE_RATIO,
     NOISE_TYPE,
@@ -101,19 +101,23 @@ def save_mesh(mesh: Mesh3D, path: Path,) -> None:
 
 
 # dataset creation
-def create_no_correspondence_sequence() -> None:
+def create_no_correspondence_sequence(model_name: str) -> None:
     """
     Create independently face reduced and noisy frames. 
     Every frame gets a different target triangle count.
     Therefore, vertex correspondence between frames is lost.
     """
-    frames = load_frames(INPUT_FOLDER)
+    input_folder = config.question_8_dynamic_folder(model_name)
+    output_folder = (
+        config.RESOURCE_DIR / "dynamic" / f"{model_name}_nocorr"
+    )
+    frames = load_frames(input_folder)
 
     if MAX_FRAMES is not None:
         frames = frames[:MAX_FRAMES]
 
-    clean_output = OUTPUT_FOLDER / "clean_remeshed"
-    noisy_output = OUTPUT_FOLDER / "noisy"
+    clean_output = output_folder / "clean_remeshed"
+    noisy_output = output_folder / "noisy"
 
     rng = np.random.default_rng(RANDOM_SEED)
 
@@ -144,5 +148,17 @@ def create_no_correspondence_sequence() -> None:
     print(f"Noisy input:  {noisy_output}")
 
 
+def parse_model_name() -> str:
+    parser = argparse.ArgumentParser(
+        description="Create an independently remeshed dynamic sequence"
+    )
+    parser.add_argument(
+        "model",
+        choices=config.DYNAMIC_MESH_NAMES,
+        help="dynamic mesh sequence to remesh",
+    )
+    return parser.parse_args().model
+
+
 if __name__ == "__main__":
-    create_no_correspondence_sequence()
+    create_no_correspondence_sequence(parse_model_name())

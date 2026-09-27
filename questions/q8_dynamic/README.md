@@ -17,10 +17,11 @@ resources/dynamic/bouncing/
 
 The basic Q8 assumes exactly what the paper assumes: every frame has the same number of vertices, the same triangle connectivity, and therefore direct vertex correspondence. Varying connectivity belongs to the bonus question.
 
-Run:
+Run either prepared sequence by name:
 
 ```bash
-python project.py --dynamic-folder resources/dynamic/bouncing
+python q8.py bouncing
+python q8.py swing
 ```
 
 ## Code map

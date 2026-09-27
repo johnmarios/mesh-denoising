@@ -1,7 +1,6 @@
 """Interactive VVR viewer for two-frame non-rigid CPD registration."""
 
 from pathlib import Path
-import time
 
 import numpy as np
 
@@ -144,9 +143,7 @@ class CPDRegistrationApp(Scene3D_):
         )
 
         self.iteration = 0
-        self.playing = False
         self.heatmap_visible = False
-        self.last_animation_step = time.perf_counter()
 
         self.initial_points = PointSet3D(
             self.source_vertices,
@@ -235,23 +232,13 @@ class CPDRegistrationApp(Scene3D_):
             )
 
     def on_key_press(self, symbol, modifiers):
-        if symbol == Key.SPACE:
-            if self.iteration == len(self.weight_history) - 1:
-                self.show_iteration(0)
-            self.playing = not self.playing
-            self.last_animation_step = time.perf_counter()
-            self.print("Animation playing." if self.playing else "Animation paused.")
-        elif symbol == Key.RIGHT:
-            self.playing = False
+        if symbol == Key.RIGHT:
             self.show_iteration(self.iteration + 1)
         elif symbol == Key.LEFT:
-            self.playing = False
             self.show_iteration(self.iteration - 1)
         elif symbol == Key.HOME or symbol == Key.R:
-            self.playing = False
             self.show_iteration(0)
         elif symbol == Key.END:
-            self.playing = False
             self.show_iteration(len(self.weight_history) - 1)
         elif symbol == Key.E:
             self.toggle_heatmap()
@@ -270,23 +257,6 @@ class CPDRegistrationApp(Scene3D_):
         state = "shown" if self.axes_visible else "hidden"
         self.print(f"Coordinate axes {state}.")
 
-    def on_idle(self):
-        if not self.playing:
-            return
-
-        now = time.perf_counter()
-        if now - self.last_animation_step < config.SECONDS_PER_ITERATION:
-            return
-
-        self.last_animation_step = now
-
-        if self.iteration == len(self.weight_history) - 1:
-            self.playing = False
-            self.print("Animation finished.")
-            return
-
-        self.show_iteration(self.iteration + 1)
-
     def print_help(self):
         self.print(
             "\n"
@@ -295,7 +265,6 @@ class CPDRegistrationApp(Scene3D_):
             "Red points   : fixed target frame\n"
             "Blue points  : moving source frame\n"
             "Gray points  : original source position\n"
-            "SPACE        : play / pause animation\n"
             "LEFT / RIGHT : previous / next CPD iteration\n"
             "HOME or R    : return to iteration 0\n"
             "END          : show final registration\n"

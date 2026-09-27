@@ -15,7 +15,6 @@ MAX_ITERATIONS = 40
 TOLERANCE = 1e-5
 
 RANDOM_SEED = 7
-SECONDS_PER_ITERATION = 0.35
 POINT_SIZE = 0.8
 
 # Errors at or above this percentile are displayed with the reddest color.

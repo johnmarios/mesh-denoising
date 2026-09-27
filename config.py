@@ -17,28 +17,24 @@ ROOT = Path(__file__).resolve().parent
 RESOURCE_DIR = ROOT / "resources"
 OUTPUT_DIR = ROOT / "outputs"
 
-# Dynamic mesh dataset. Change only this name to select another sequence.
-# Available coursework sequences: "bouncing" and "swing".
-DYNAMIC_MESH_NAME = "swing"
+DYNAMIC_MESH_NAMES = ("bouncing", "swing")
 
-# Question 8 uses the original sequence with vertex correspondence.
-QUESTION_8_DYNAMIC_FOLDER = RESOURCE_DIR / "dynamic" / DYNAMIC_MESH_NAME
 
-# The Bonus uses the same sequence after independent remeshing.
-BONUS_DYNAMIC_FOLDER = (
-    RESOURCE_DIR
-    / "dynamic"
-    / f"{DYNAMIC_MESH_NAME}_nocorr"
-    / "clean_remeshed"
-)
+def question_8_dynamic_folder(model_name: str) -> Path:
+    """Return the original sequence, whose frames have correspondence."""
+    return RESOURCE_DIR / "dynamic" / model_name
 
-# Common-topology sequence produced by CPD and consumed by the Bonus viewer.
-# The sequence name is part of the output path so cached results from different
-# dynamic meshes can never be mixed accidentally.
-BONUS_REGISTERED_FOLDER = (
-    OUTPUT_DIR / f"cpd_registered_sequence_{DYNAMIC_MESH_NAME}"
-)
 
-# Default source (moving) and target (fixed) frames for `python bonus.py`.
-CPD_DEMO_SOURCE_FRAME = 0
-CPD_DEMO_TARGET_FRAME = 35
+def bonus_dynamic_folder(model_name: str) -> Path:
+    """Return the independently remeshed sequence used by the Bonus."""
+    return (
+        RESOURCE_DIR
+        / "dynamic"
+        / f"{model_name}_nocorr"
+        / "clean_remeshed"
+    )
+
+
+def bonus_registered_folder(model_name: str) -> Path:
+    """Return the CPD output folder for one sequence."""
+    return OUTPUT_DIR / f"cpd_registered_sequence_{model_name}"
