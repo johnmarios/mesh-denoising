@@ -2,9 +2,6 @@
 MIN_FACE_RATIO = 0.60
 MAX_FACE_RATIO = 0.95
 
-NOISE_TYPE = "NORMAL"
-NOISE_LEVEL = 0.20
-
 RANDOM_SEED = 100
 
 # None for all frames

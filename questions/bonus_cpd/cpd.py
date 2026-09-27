@@ -8,13 +8,10 @@ from scipy.linalg import solve
 
 @dataclass
 class CPDResult:
-    """Values needed to inspect and animate the CPD optimization."""
+    """Values needed by the sequence registration and two-frame viewer."""
 
-    transformed_points: np.ndarray
     weights: np.ndarray
-    probabilities: np.ndarray
     weight_history: list[np.ndarray]
-    variance_history: list[float]
 
 
 def gaussian_kernel(X, Y, beta):
@@ -146,7 +143,6 @@ def nonrigid_cpd(
     sigma2 = max(initial_variance(X, Y), epsilon)
 
     weight_history = [weights.copy()]
-    variance_history = [sigma2]
 
     for _ in range(max_iterations):
         transformed_Y = Y + deformation_kernel @ weights
@@ -177,24 +173,11 @@ def nonrigid_cpd(
         sigma2 = new_sigma2
 
         weight_history.append(weights.copy())
-        variance_history.append(sigma2)
 
         if change < tolerance:
             break
 
-    transformed_Y = Y + deformation_kernel @ weights
-    probabilities = correspondence_probabilities(
-        X,
-        transformed_Y,
-        sigma2,
-        outlier_weight,
-        epsilon,
-    )
-
     return CPDResult(
-        transformed_points=transformed_Y,
         weights=weights,
-        probabilities=probabilities,
         weight_history=weight_history,
-        variance_history=variance_history,
     )

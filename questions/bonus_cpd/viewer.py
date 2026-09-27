@@ -27,7 +27,7 @@ from vvrpywork.shapes import PointSet3D
 
 
 class CPDRegistrationApp(Scene3D_):
-    """Animate one independently remeshed frame registering onto another."""
+    """Inspect one independently remeshed frame registering onto another."""
 
     def __init__(
         self,
@@ -108,9 +108,7 @@ class CPDRegistrationApp(Scene3D_):
         )
 
         self.weight_history = result.weight_history
-        self.variance_history = result.variance_history
-
-        # These kernels do not change during the animation.
+        # This kernel does not change while inspecting the CPD iterations.
         self.display_kernel = gaussian_kernel(
             self.source_vertices,
             source_control,
@@ -236,10 +234,8 @@ class CPDRegistrationApp(Scene3D_):
             self.show_iteration(self.iteration + 1)
         elif symbol == Key.LEFT:
             self.show_iteration(self.iteration - 1)
-        elif symbol == Key.HOME or symbol == Key.R:
+        elif symbol == Key.R:
             self.show_iteration(0)
-        elif symbol == Key.END:
-            self.show_iteration(len(self.weight_history) - 1)
         elif symbol == Key.E:
             self.toggle_heatmap()
         elif symbol == Key.A:
@@ -266,8 +262,7 @@ class CPDRegistrationApp(Scene3D_):
             "Blue points  : moving source frame\n"
             "Gray points  : original source position\n"
             "LEFT / RIGHT : previous / next CPD iteration\n"
-            "HOME or R    : return to iteration 0\n"
-            "END          : show final registration\n"
+            "R            : return to iteration 0\n"
             "E            : blue points / error heatmap\n"
             "A            : coordinate axes on/off\n"
             "?            : show this menu\n"

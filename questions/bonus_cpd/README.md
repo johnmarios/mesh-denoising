@@ -35,8 +35,8 @@ python cpd_demo.py bouncing --1 --35
 ```
 
 The first number is the moving source frame. The second is the fixed target
-frame. The forms `python cpd_demo.py 1 35` and
-`python cpd_demo.py --1, --35` are also accepted.
+frame. The forms `python cpd_demo.py bouncing 1 35` and
+`python cpd_demo.py bouncing --1, --35` are also accepted.
 
 In the two-frame demo, the target remains red. The source is blue and moves through the stored CPD
 iterations. Its original position remains visible in transparent gray.
@@ -45,10 +45,9 @@ The comparison is visualized only with the common-scale point-to-surface error h
 Controls:
 
 - `LEFT` / `RIGHT`: move one iteration.
-- `HOME` or `R`: return to iteration zero.
-- `END`: show the final registration.
+- `R`: return to iteration zero.
 - `E`: switch between blue points and the error heatmap.
 - `?`: show the help text.
 
 The CPD mathematical parameters remain in `questions/bonus_cpd/config.py`.
-Dataset paths and default frame numbers remain in the root `config.py`.
+The sequence name and frame numbers are given directly in each command.

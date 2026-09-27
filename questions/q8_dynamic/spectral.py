@@ -26,14 +26,6 @@ def inverse_graph_fourier_transform_sequence(gfts: np.ndarray, eigenvectors: np.
     vertices_sequence = reconstructed.reshape(vertex_count, frame_count, 3).transpose(1, 0, 2) # (T, V, 3)
     return vertices_sequence
 
-def graph_fourier_transform(vertices: np.ndarray, eigenvectors: np.ndarray) -> np.ndarray:
-    """V_hat = U^T V."""
-    return eigenvectors.T @ np.asarray(vertices, dtype=float) # (V, 3)
-
-def inverse_graph_fourier_transform(gft: np.ndarray, eigenvectors: np.ndarray) -> np.ndarray:
-    """V = U V_hat."""
-    return eigenvectors @ gft
-
 def compute_k_bars(gfts: np.ndarray, energy_fraction: float = config.HIGH_FREQUENCY_ENERGY_FRACTION,) -> tuple[np.ndarray, int]:
     gfts = np.asarray(gfts) # (T, V, 3)
 
@@ -116,14 +108,6 @@ def reconstruct_gfts(gfts: np.ndarray, Sx: np.ndarray, Sy: np.ndarray, Sz: np.nd
 
     return denoised_gfts
 
-def reconstruct_vertices(original_vertices: np.ndarray, original_gft: np.ndarray, denoised_gft: np.ndarray, eigenvectors: np.ndarray) -> np.ndarray:
-
-    spectral_correction = (denoised_gft - original_gft)
-    vertex_correction = inverse_graph_fourier_transform(spectral_correction, eigenvectors)
-
-    return (original_vertices + vertex_correction)
-
-
 def compute_graph_eigenvectors(vertices: np.ndarray, triangles: np.ndarray) -> np.ndarray:
     """Compute the graph eigenbasis shared by all corresponding frames."""
     laplacian = graph_laplacian(vertices, triangles)
@@ -141,8 +125,7 @@ def denoise_dynamic_vertices(vertices_sequence: np.ndarray, triangles: np.ndarra
             triangles,
         )
 
-    # GFT 
-    # gfts = np.stack([graph_fourier_transform(vertices, eigenvectors) for vertices in vertices_sequence]) # (T, V, 3)
+    # GFT
     gfts = graph_fourier_transform_sequence(vertices_sequence, eigenvectors) # (T, V, 3)
 
     # find k_bar = max(k_bar_i), k_bar_i which is the number of high frequencies in each frame

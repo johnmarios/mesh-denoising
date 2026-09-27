@@ -7,15 +7,12 @@ import open3d as o3d
 from vvrpywork.shapes import Mesh3D
 
 import config
-from core.mesh import copy_mesh, vertex_normals
+from core.mesh import vertex_normals
 from core.visualization import gray_colors
-from questions import q1_noise
 from questions.q8_dynamic.sequence import load_frames
 from remesh_config import (
     MIN_FACE_RATIO,
     MAX_FACE_RATIO,
-    NOISE_TYPE,
-    NOISE_LEVEL,
     RANDOM_SEED,
     MAX_FRAMES
 )
@@ -69,25 +66,6 @@ def reduce_mesh(mesh: Mesh3D, face_ratio: float,) -> Mesh3D:
     return from_open3d(simplified)
 
 
-# noise addition
-def add_noise(clean_mesh: Mesh3D, seed: int,) -> Mesh3D:
-    """Add noise to clean mesh. """
-    noisy_mesh = copy_mesh(clean_mesh)
-
-    noisy_mesh.vertices = q1_noise.add_noise(
-        vertices=clean_mesh.vertices,
-        triangles=clean_mesh.triangles,
-        vertex_normals=clean_mesh.vertex_normals,
-        noise_type=NOISE_TYPE,
-        level=NOISE_LEVEL,
-        seed=seed,
-    )
-
-    noisy_mesh.vertex_normals = vertex_normals(noisy_mesh.vertices, noisy_mesh.triangles,)
-
-    return noisy_mesh
-
-
 # save
 def save_mesh(mesh: Mesh3D, path: Path,) -> None:
     """Save a vvrpywork Mesh3D as OBJ."""
@@ -103,7 +81,7 @@ def save_mesh(mesh: Mesh3D, path: Path,) -> None:
 # dataset creation
 def create_no_correspondence_sequence(model_name: str) -> None:
     """
-    Create independently face reduced and noisy frames. 
+    Create independently face-reduced frames.
     Every frame gets a different target triangle count.
     Therefore, vertex correspondence between frames is lost.
     """
@@ -117,7 +95,6 @@ def create_no_correspondence_sequence(model_name: str) -> None:
         frames = frames[:MAX_FRAMES]
 
     clean_output = output_folder / "clean_remeshed"
-    noisy_output = output_folder / "noisy"
 
     rng = np.random.default_rng(RANDOM_SEED)
 
@@ -126,13 +103,9 @@ def create_no_correspondence_sequence(model_name: str) -> None:
         face_ratio = rng.uniform(MIN_FACE_RATIO, MAX_FACE_RATIO,)
         clean_remeshed = reduce_mesh(original_mesh, face_ratio,)
 
-        noisy_remeshed = add_noise(clean_remeshed, seed=RANDOM_SEED + frame_index,)
-
         filename = f"mesh_{frame_index:04d}.obj"
 
         save_mesh(clean_remeshed, clean_output / filename,)
-
-        save_mesh(noisy_remeshed, noisy_output / filename,)
 
         print(
             f"Frame {frame_index:03d}: "
@@ -145,7 +118,6 @@ def create_no_correspondence_sequence(model_name: str) -> None:
     print()
     print("Dataset creation completed.")
     print(f"Clean meshes: {clean_output}")
-    print(f"Noisy input:  {noisy_output}")
 
 
 def parse_model_name() -> str:

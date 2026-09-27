@@ -20,7 +20,8 @@ Because BatchNorm changes the model state, train Q7 from a fresh checkpoint (`RE
 Run a corresponding OBJ sequence with:
 
 ```bash
-python project.py --dynamic-folder resources/dynamic/<sequence>
+python q8.py bouncing
+python q8.py swing
 ```
 
 The dynamic implementation is separated into small files:
