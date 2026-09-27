@@ -2,7 +2,6 @@ import numpy as np
 from matplotlib import colormaps as cm
 
 from core.mesh import copy_mesh, vertex_normals
-from questions import q2_metrics 
 
 
 def vertex_normal_angle_error(reference_mesh, current_mesh) -> np.ndarray:
@@ -37,24 +36,8 @@ def error_heatmap_colors(reference_mesh, current_mesh, maximum_error: float) -> 
     return cm["turbo"](normalized)[:, :3]
 
 
-def sequence_metrics(reference_frames, current_frames) -> dict[str, float]:
-    """Average the existing Q2 metrics over all corresponding frames."""
-    if len(reference_frames) != len(current_frames):
-        raise ValueError("Sequences must have the same number of frames.")
-
-    values = [
-        q2_metrics.compute_metrics(reference, current)
-        for reference, current in zip(reference_frames, current_frames)
-    ]
-
-    return {
-        name: float(np.mean([frame_values[name] for frame_values in values]))
-        for name in values[0]
-    }
-
-
 def meshes_from_vertices(reference_frames, vertices_sequence):
-    """Create display/evaluation meshes while keeping the common connectivity."""
+    """Create display meshes while keeping the common connectivity."""
     result = []
     for reference, vertices in zip(reference_frames, vertices_sequence):
         mesh = copy_mesh(reference)

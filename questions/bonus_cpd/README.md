@@ -44,7 +44,7 @@ frame. The forms `python cpd_demo.py 1 35` and
 
 In the two-frame demo, the target remains red. The source is blue and moves through the stored CPD
 iterations. Its original position remains visible in transparent gray.
-Chamfer and point-to-surface errors are printed in the output panel.
+The comparison is visualized only with the common-scale point-to-surface error heatmap.
 
 Controls:
 

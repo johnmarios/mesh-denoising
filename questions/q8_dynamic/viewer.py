@@ -1,8 +1,6 @@
 """Small interactive viewer for Question 8 dynamic sequences."""
 
 from pathlib import Path
-import csv
-import re
 import time
 
 import numpy as np
@@ -14,7 +12,11 @@ from vvrpywork.shapes import LineSet3D
 import config as project_config
 from core.visualization import gray_colors, set_axes_visible
 from questions.q8_dynamic import config
-from questions.q8_dynamic.evaluation import error_heatmap_colors, meshes_from_vertices, sequence_metrics, sequence_maximum_normal_error
+from questions.q8_dynamic.evaluation import (
+    error_heatmap_colors,
+    meshes_from_vertices,
+    sequence_maximum_normal_error,
+)
 from questions.q8_dynamic.sequence import DynamicMeshSession
 from questions.q8_dynamic.spectral import (
     compute_graph_eigenvectors,
@@ -113,8 +115,6 @@ class DynamicMeshApp(Scene3D_):
             self.add_noise()
         elif symbol == Key._8:
             self.denoise_sequence()
-        elif symbol == Key._2:
-            self.print_metrics()
         elif symbol == Key.E:
             self.show_error_heatmap()
         elif symbol == Key.R:
@@ -215,31 +215,10 @@ class DynamicMeshApp(Scene3D_):
         self.session.set_denoised(denoised_frames)
         self._reset_colors()
 
-        noisy_metrics = sequence_metrics(
-            self.session.original,
-            self.session.noisy,
+        self.print(
+            "Q8 finished. Use N/P to switch between noisy and denoised "
+            "frames, then press E for the common-scale error heatmap."
         )
-        denoised_metrics = sequence_metrics(
-            self.session.original,
-            self.session.denoised,
-        )
-
-        self.print("Q8 finished. Mean sequence errors:")
-        for name in ("MSAE_deg", "L2_surface", "Hausdorff", "RMSE"):
-            self.print(
-                f"{name:12s}: {noisy_metrics[name]:.6g} -> "
-                f"{denoised_metrics[name]:.6g}"
-            )
-
-    def print_metrics(self):
-        if self.session.mode == "original":
-            self.print("Select noisy (N) or denoised (P) frames first.")
-            return
-
-        values = sequence_metrics(self.session.original, self.session.current_frames)
-        self.print("Q8 mean sequence metrics:")
-        for name, value in values.items():
-            self.print(f"{name:14s}: {value:.6g}")
 
     def show_error_heatmap(self):
         if self.session.mode == "original":
@@ -279,8 +258,6 @@ class DynamicMeshApp(Scene3D_):
                 self.registered_session = None
                 return
 
-            self._print_cpd_summary()
-
         current_index = self.session.frame_index
         self.session = self.registered_session
         self.session.frame_index = min(
@@ -314,36 +291,6 @@ class DynamicMeshApp(Scene3D_):
         self._print_frame()
         self.print("Raw remeshed frames shown. Press R to apply CPD correspondence.")
 
-    def _print_cpd_summary(self):
-        """Print aggregate before/after registration measurements."""
-        metrics_path = self.registered_folder / "metrics.csv"
-        if not metrics_path.exists():
-            return
-
-        try:
-            with metrics_path.open(newline="", encoding="utf-8") as file:
-                rows = list(csv.DictReader(file))
-
-            before = np.array(
-                [float(row["surface_mean_before"]) for row in rows]
-            )
-            after = np.array(
-                [float(row["surface_mean_after"]) for row in rows]
-            )
-        except (OSError, KeyError, TypeError, ValueError) as error:
-            self.print(f"Could not read CPD metrics: {error}")
-            return
-
-        if not rows:
-            return
-
-        improved = int(np.sum(after < before))
-        self.print(
-            "CPD mean point-to-surface error: "
-            f"{np.mean(before):.6f} -> {np.mean(after):.6f}."
-        )
-        self.print(f"CPD improved {improved}/{len(rows)} target frames.")
-
     def print_help(self):
         self.print(
             "\n"
@@ -354,7 +301,6 @@ class DynamicMeshApp(Scene3D_):
             "B            : return to raw remeshed frames (Bonus)\n"
             "1            : add selected noise to every frame\n"
             "8            : spectral dynamic denoising (paper Algorithm 1)\n"
-            "2            : print mean Q2 metrics over the sequence\n"
             "E            : error heatmap on current frame\n"
             "O / N / P    : original / noisy / denoised sequence\n"
             "C            : return current frame to gray\n"

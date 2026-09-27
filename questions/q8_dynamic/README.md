@@ -27,7 +27,7 @@ python project.py --dynamic-folder resources/dynamic/bouncing
 
 - `sequence.py`: load frames, verify correspondence, common normalization, dynamic session.
 - `spectral.py`: the paper algorithm, step by step in small functions.
-- `evaluation.py`: Q2 sequence averages and the requested normal-angle error heatmap.
+- `evaluation.py`: the requested normal-angle error heatmap.
 - `viewer.py`: manual frame navigation and the Q8 controls.
 - `config.py`: only the few numerical parameters used by RPCA.
 

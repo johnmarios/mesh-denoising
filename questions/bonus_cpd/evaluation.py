@@ -1,4 +1,4 @@
-"""Point-to-surface error measurement for meshes without correspondence."""
+"""Point-to-surface values used only to color correspondence-free heatmaps."""
 
 import numpy as np
 import open3d as o3d
@@ -28,16 +28,6 @@ def point_to_surface_distances(points, target_surface):
     result = target_surface.compute_closest_points(query)
     closest_points = result["points"].numpy()
     return np.linalg.norm(points - closest_points, axis=1)
-
-
-def error_statistics(distances):
-    """Return the three values printed by the CPD viewer."""
-    distances = np.asarray(distances, dtype=float)
-    return {
-        "mean": float(np.mean(distances)),
-        "p95": float(np.percentile(distances, 95.0)),
-        "maximum": float(np.max(distances)),
-    }
 
 
 def error_heatmap_colors(distances, color_limit):

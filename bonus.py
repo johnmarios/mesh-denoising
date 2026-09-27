@@ -11,12 +11,10 @@ def registered_sequence_is_ready() -> bool:
     """Check that CPD produced one output mesh for every remeshed input."""
     input_frames = list(config.BONUS_DYNAMIC_FOLDER.glob("*.obj"))
     registered_frames = list(config.BONUS_REGISTERED_FOLDER.glob("*.obj"))
-    metrics_path = config.BONUS_REGISTERED_FOLDER / "metrics.csv"
 
     return (
         len(input_frames) > 0
         and len(registered_frames) == len(input_frames)
-        and metrics_path.exists()
     )
 
 

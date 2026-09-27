@@ -12,16 +12,13 @@ from questions.bonus_cpd import config
 from questions.bonus_cpd.cpd import (
     gaussian_kernel,
     nonrigid_cpd,
-    symmetric_chamfer,
 )
 from questions.bonus_cpd.evaluation import (
     create_target_surface,
     error_heatmap_colors,
-    error_statistics,
     point_to_surface_distances,
 )
 from questions.bonus_cpd.sampling import (
-    sample_mesh_surface,
     sample_mesh_surface_evenly,
 )
 from questions.q8_dynamic.sequence import load_frames
@@ -96,19 +93,6 @@ class CPDRegistrationApp(Scene3D_):
             config.CONTROL_CANDIDATE_MULTIPLIER,
         )
 
-        source_evaluation = sample_mesh_surface(
-            source_mesh.vertices,
-            source_mesh.triangles,
-            config.EVALUATION_POINTS,
-            config.RANDOM_SEED + 2,
-        )
-        target_evaluation = sample_mesh_surface(
-            target_mesh.vertices,
-            target_mesh.triangles,
-            config.EVALUATION_POINTS,
-            config.RANDOM_SEED + 3,
-        )
-
         self.print(
             f"Running CPD with {len(source_control)} moving and "
             f"{len(target_control)} target control points..."
@@ -133,28 +117,6 @@ class CPDRegistrationApp(Scene3D_):
             source_control,
             config.BETA,
         )
-        evaluation_kernel = gaussian_kernel(
-            source_evaluation,
-            source_control,
-            config.BETA,
-        )
-
-        self.chamfer_history = []
-        for weights in self.weight_history:
-            warped_evaluation = source_evaluation + evaluation_kernel @ weights
-            self.chamfer_history.append(
-                symmetric_chamfer(warped_evaluation, target_evaluation)
-            )
-
-        initial_chamfer = self.chamfer_history[0]
-        final_chamfer = self.chamfer_history[-1]
-        improvement = 100.0 * (initial_chamfer - final_chamfer) / initial_chamfer
-        self.print(
-            f"Chamfer before CPD: {initial_chamfer:.6g}\n"
-            f"Chamfer after CPD : {final_chamfer:.6g}\n"
-            f"Improvement       : {improvement:.2f}%"
-        )
-
         # The target is a surface, not an ordered list of corresponding vertices.
         self.target_surface = create_target_surface(
             self.target_vertices,
@@ -180,10 +142,6 @@ class CPDRegistrationApp(Scene3D_):
                 config.HEATMAP_LIMIT_PERCENTILE,
             )
         )
-
-        initial_statistics = error_statistics(initial_errors)
-        final_statistics = error_statistics(final_errors)
-        self.print_surface_comparison(initial_statistics, final_statistics)
 
         self.iteration = 0
         self.playing = False
@@ -220,38 +178,24 @@ class CPDRegistrationApp(Scene3D_):
         return self.source_vertices + self.display_kernel @ weights
 
     def show_iteration(self, iteration):
-        """Update the blue points and print the corresponding measurements."""
+        """Update the blue points or the heatmap for one CPD iteration."""
         self.iteration = int(np.clip(iteration, 0, len(self.weight_history) - 1))
         transformed_vertices = self.transformed_source_vertices(self.iteration)
-        surface_errors = point_to_surface_distances(
-            transformed_vertices,
-            self.target_surface,
-        )
-        statistics = error_statistics(surface_errors)
 
         if self.heatmap_visible:
+            surface_errors = point_to_surface_distances(
+                transformed_vertices,
+                self.target_surface,
+            )
             self.update_heatmap_mesh(transformed_vertices, surface_errors)
             self.updateShape("heatmap")
         else:
             self.moving_points.points = transformed_vertices
             self.updateShape("moving")
 
-        initial_chamfer = self.chamfer_history[0]
-        current_chamfer = self.chamfer_history[self.iteration]
-
-        if initial_chamfer > 0.0:
-            improvement = 100.0 * (initial_chamfer - current_chamfer) / initial_chamfer
-        else:
-            improvement = 0.0
-
         self.print(
-            f"Iteration {self.iteration:02d}/{len(self.weight_history) - 1:02d} | "
-            f"Chamfer={current_chamfer:.6g} | "
-            f"improvement={improvement:.2f}% | "
-            f"mean surface error={statistics['mean']:.6g} | "
-            f"P95={statistics['p95']:.6g} | "
-            f"max={statistics['maximum']:.6g} | "
-            f"sigma^2={self.variance_history[self.iteration]:.6g}"
+            f"CPD iteration {self.iteration:02d}/"
+            f"{len(self.weight_history) - 1:02d}"
         )
 
     def update_heatmap_mesh(self, vertices, errors):
@@ -289,16 +233,6 @@ class CPDRegistrationApp(Scene3D_):
                 "Point-to-surface error heatmap shown. "
                 f"Blue=0, red>={self.heatmap_color_limit:.6g}."
             )
-
-    def print_surface_comparison(self, before, after):
-        """Print the point-to-surface measurements before and after CPD."""
-        self.print(
-            "\nPoint-to-surface error (source vertices -> target surface):\n"
-            "                    before CPD       after CPD\n"
-            f"mean                {before['mean']:<16.6g} {after['mean']:.6g}\n"
-            f"95th percentile     {before['p95']:<16.6g} {after['p95']:.6g}\n"
-            f"maximum             {before['maximum']:<16.6g} {after['maximum']:.6g}\n"
-        )
 
     def on_key_press(self, symbol, modifiers):
         if symbol == Key.SPACE:

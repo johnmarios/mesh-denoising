@@ -5,12 +5,9 @@ SOURCE_CONTROL_POINTS = 350
 TARGET_CONTROL_POINTS = 400
 CONTROL_CANDIDATE_MULTIPLIER = 8
 
-# These independent samples are used only for the Chamfer evaluation.
-EVALUATION_POINTS = 2_000
-
 # Non-rigid CPD parameters.
 # A wide kernel and strong regularization keep the body coherent.
-# Smaller values can reduce Chamfer by folding the human shape.
+# Smaller values may fold the human shape.
 BETA = 0.90
 REGULARIZATION = 300.0
 OUTLIER_WEIGHT = 0.05

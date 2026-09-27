@@ -4,7 +4,6 @@ from dataclasses import dataclass
 
 import numpy as np
 from scipy.linalg import solve
-from scipy.spatial import cKDTree
 
 
 @dataclass
@@ -115,20 +114,6 @@ def transform_points(points, control_points, weights, beta):
     return np.asarray(points, dtype=float) + kernel @ weights
 
 
-def symmetric_chamfer(first_points, second_points):
-    """Mean non-squared symmetric Chamfer distance."""
-    first_points = np.asarray(first_points, dtype=float)
-    second_points = np.asarray(second_points, dtype=float)
-
-    first_to_second = cKDTree(second_points).query(first_points)[0]
-    second_to_first = cKDTree(first_points).query(second_points)[0]
-
-    return 0.5 * (
-        float(np.mean(first_to_second))
-        + float(np.mean(second_to_first))
-    )
-
-
 def relative_change(old_value, new_value, epsilon=1e-12):
     """Relative scalar change used by the convergence test."""
     return abs(float(old_value) - float(new_value)) / max(abs(float(old_value)), epsilon)
@@ -213,4 +198,3 @@ def nonrigid_cpd(
         weight_history=weight_history,
         variance_history=variance_history,
     )
-
