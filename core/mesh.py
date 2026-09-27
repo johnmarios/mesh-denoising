@@ -25,9 +25,21 @@ MODEL_SOURCES = {
     "FLASHLIGHT": RESOURCE_DIR / "flashlight.obj",
     "PHONE": RESOURCE_DIR / "Phone_v02.obj",
     "UNICORN": RESOURCE_DIR / "unicorn_low.obj",
+    "BUNNY_Q6_REFERENCE": RESOURCE_DIR / "q6" / "bunny_low_normalized.obj",
+    "BUNNY_Q6_REMESHED": RESOURCE_DIR / "q6" / "bunny_low_normalized_remeshed.obj",
+    "BUNNY_Q6_HOLES": RESOURCE_DIR / "q6" / "bunny_low_normalized_holes.obj",
 }
 
 MODEL_NAMES = tuple(MODEL_SOURCES)
+
+# These meshes were all created from the same normalized Question 6 reference.
+# They must keep that common coordinate system, so MeshSession must not center
+# and scale each one independently when it is loaded.
+PRENORMALIZED_MODEL_NAMES = {
+    "BUNNY_Q6_REFERENCE",
+    "BUNNY_Q6_REMESHED",
+    "BUNNY_Q6_HOLES",
+}
 
 
 def vertex_normals(vertices: np.ndarray, triangles: np.ndarray) -> np.ndarray:
@@ -84,16 +96,17 @@ def create_mesh(name: str) -> Mesh3D:
     return load_mesh_from_path(path)
 
 
-def prepare_mesh(mesh: Mesh3D) -> Mesh3D:
-    """center at origin and scale to the unit sphere."""
+def prepare_mesh(mesh: Mesh3D, normalize: bool = True) -> Mesh3D:
+    """Clean a mesh and optionally center it inside the unit sphere."""
     mesh.remove_duplicated_vertices()
     mesh.remove_unreferenced_vertices()
 
     vertices = np.asarray(mesh.vertices, dtype=float).copy()
-    vertices -= vertices.mean(axis=0)
-    radius = np.max(np.linalg.norm(vertices, axis=1))
-    if radius > 0.0:
-        vertices /= radius
+    if normalize:
+        vertices -= vertices.mean(axis=0)
+        radius = np.max(np.linalg.norm(vertices, axis=1))
+        if radius > 0.0:
+            vertices /= radius
 
     mesh.vertices = vertices
     mesh.triangles = np.asarray(mesh.triangles, dtype=np.int64)
@@ -107,7 +120,8 @@ class MeshSession:
 
     def __init__(self, model_name: str):
         self.model_name = model_name.upper()
-        self.original = prepare_mesh(create_mesh(self.model_name))
+        normalize = self.model_name not in PRENORMALIZED_MODEL_NAMES
+        self.original = prepare_mesh(create_mesh(self.model_name), normalize=normalize)
         self.noisy = None
         self.current = copy_mesh(self.original)
         self.current_source = "original"

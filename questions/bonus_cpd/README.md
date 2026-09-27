@@ -1,16 +1,25 @@
-# Bonus: two-frame CPD demo
+# Bonus: correspondence-free dynamic mesh denoising
 
 This module uses non-rigid Coherent Point Drift to restore a common topology
 to an independently remeshed dynamic sequence.
 
-Select the dynamic mesh once in the root `config.py`:
+Select the dynamic mesh once in the root `config.py`. The prepared sequences
+are `"bouncing"` and `"swing"`:
 
 ```python
-DYNAMIC_MESH_NAME = "bouncing"
+DYNAMIC_MESH_NAME = "swing"
 ```
 
-Question 8 then uses `resources/dynamic/bouncing`. The Bonus uses
-`resources/dynamic/bouncing_nocorr/clean_remeshed`.
+Question 8 then uses `resources/dynamic/<name>`. The Bonus uses
+`resources/dynamic/<name>_nocorr/clean_remeshed`, and stores the CPD result in
+`outputs/cpd_registered_sequence_<name>`. This keeps the cached Bouncing and
+Swing results separate.
+
+If the no-correspondence input has not been created yet, run:
+
+```text
+python remeshing.py
+```
 
 Run the complete Bonus with:
 
@@ -24,8 +33,6 @@ denoising. Press `B` to return to the raw remeshed input. If the registered
 sequence does not exist yet, `bonus.py` computes it once and saves it.
 
 The separate two-frame visualization remains available with:
-
-Run any other pair with:
 
 ```text
 python cpd_demo.py --1 --35
