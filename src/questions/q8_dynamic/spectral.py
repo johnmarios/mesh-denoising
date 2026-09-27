@@ -1,6 +1,5 @@
-"""Paper-faithful spectral steps for Question 8.
-
-The functions follow Algorithm 1 of Arvanitis, Lalos and Moustakas (2019):
+"""
+Spectral processing for dynamic mesh denoising.
 Laplacian -> GFT -> high-frequency coherent matrices -> low-rank RPCA -> IGFT.
 """
 
