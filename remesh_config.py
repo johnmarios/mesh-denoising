@@ -1,0 +1,9 @@
+
+MIN_FACE_RATIO = 0.60
+MAX_FACE_RATIO = 0.95
+
+RANDOM_SEED = 100
+
+# None for all frames
+MAX_FRAMES = None
+
