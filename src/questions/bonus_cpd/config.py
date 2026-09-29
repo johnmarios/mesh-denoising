@@ -3,7 +3,7 @@
 # CPD uses only these independently sampled surface points.
 SOURCE_CONTROL_POINTS = 350
 TARGET_CONTROL_POINTS = 400
-CONTROL_CANDIDATE_MULTIPLIER = 8
+CONTROL_CANDIDATE_MULTIPLIER = 8 # Sample this many candidates and keep the best ones.
 
 # Non-rigid CPD parameters.
 # A wide kernel and strong regularization keep the body coherent.
@@ -25,4 +25,4 @@ HEATMAP_LIMIT_PERCENTILE = 95.0
 # whose topology is transferred independently onto every target frame.
 SEQUENCE_CONTROL_POINTS = 300
 SEQUENCE_BETA = 0.50
-SEQUENCE_REGULARIZATION = 100.0
+SEQUENCE_REGULARIZATION = 100.0 # Weaker regularization allows more flexibility to follow the motion.

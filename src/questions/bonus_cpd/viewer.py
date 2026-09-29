@@ -51,6 +51,7 @@ class CPDRegistrationApp(Scene3D_):
         frames = load_frames(folder, require_correspondence=False)
 
         required_frames = max(source_frame, target_frame) + 1
+
         if len(frames) < required_frames:
             raise ValueError(
                 f"The folder contains {len(frames)} frames, but frame "
@@ -133,7 +134,8 @@ class CPDRegistrationApp(Scene3D_):
         self.show_iteration(0)
 
     def transformed_source_vertices(self, iteration):
-        """Apply the deformation of one CPD iteration to the full source mesh."""
+        """Apply the deformation of one CPD iteration to the full source mesh.
+        Τ(Υ) = Υ + G(Υ, Y) W"""
         weights = self.weight_history[iteration]
         return self.source_vertices + self.display_kernel @ weights
 

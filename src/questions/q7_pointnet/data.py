@@ -228,6 +228,7 @@ class PatchDenoisingDataset(Dataset):
             noise_type = variant["noise_type"]
 
             patch_indices = knn_vertex_patches(noisy_vertices, k=k)
+            # choose the patch centers for this variant, possibly balancing impulse noise
             center_indices = choose_center_indices(
                 clean_vertices,
                 noisy_vertices,

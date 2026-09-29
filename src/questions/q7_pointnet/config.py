@@ -26,9 +26,8 @@ LEARNING_RATE = 5e-4
 SEED = 7
 
 # One decay around the time our previous runs begin to settle.
-# A 20-epoch step would be too late for runs that are often useful by ~16 epochs.
-SCHEDULER_STEP_SIZE = 10
-SCHEDULER_GAMMA = 0.5
+SCHEDULER_STEP_SIZE = 10 # Decay the learning rate every 10 epochs.
+SCHEDULER_GAMMA = 0.5 # Decay the learning rate by a factor of 0.5.
 
 # Stop if validation loss has not improved for this many epochs.
 EARLY_STOPPING_PATIENCE = 15
