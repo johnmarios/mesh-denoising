@@ -2,21 +2,6 @@
 
 ## 3D Computational Geometry and Computer Vision 2025–2026
 
-This repository contains the implementation for **Project 3: Mesh Denoising**.
-
-The project includes:
-- noise generation and visualization,
-- quantitative mesh-comparison metrics,
-- normal estimation and denoising-region detection,
-- Laplacian and Taubin smoothing,
-- feature-aware denoising,
-- experiments after remeshing and topology changes,
-- PointNet-based denoising,
-- denoising of dynamic meshes,
-- correspondence recovery with Coherent Point Drift (CPD),
-- the bonus pipeline for dynamic meshes without known point correspondence.
-
----
 
 ## Setup
 
@@ -157,10 +142,3 @@ python bonus.py swing
 ```
 
 ---
-
-## Notes
-
-- Run all commands from the project root directory.
-- Make sure the required datasets and mesh files are available in the expected project folders before execution.
-- PointNet evaluation uses the already trained model checkpoint.
-- TensorBoard can be used to inspect the PointNet training logs stored under `outputs\pointnet_final\tensorboard`.
